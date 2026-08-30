@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#05010f">
+<title>Vibe Coding 學院 — 用 AI 寫出你的第一個 App</title>
+<style>
+/* ============ 基礎與變數 ============ */
+:root{
+  --bg:#05010f; --bg2:#0b0520;
+  --card:rgba(255,255,255,.045); --card-brd:rgba(255,255,255,.09);
+  --txt:#f2eeff; --sub:#a79fc9;
+  --c1:#7c3aed; --c2:#06b6d4; --c3:#f472b6; --c4:#fbbf24;
+  --grad:linear-gradient(135deg,#7c3aed,#06b6d4);
+  --grad3:linear-gradient(120deg,#7c3aed,#f472b6,#06b6d4,#fbbf24);
+  --radius:22px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro HK","PingFang HK","PingFang TC","Noto Sans TC","Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--txt);overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;line-height:1.6;
+}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--c1);color:#fff}
+
+/* ============ 載入畫面 ============ */
+#loader{
+  position:fixed;inset:0;z-index:9999;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .7s ease,visibility .7s;
+}
+#loader.done{opacity:0;visibility:hidden}
+.loader-ring{width:64px;height:64px;position:relative}
+.loader-ring::before,.loader-ring::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  border:3px solid transparent;
+}
+.loader-ring::before{border-top-color:var(--c1);border-right-color:var(--c2);animation:spin 1s linear infinite}
+.loader-ring::after{inset:10px;border-bottom-color:var(--c3);animation:spin .8s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-txt{font-size:13px;letter-spacing:6px;color:var(--sub);text-transform:uppercase;animation:pulse-txt 1.6s ease infinite}
+@keyframes pulse-txt{0%,100%{opacity:.4}50%{opacity:1}}
+.loader-bar{width:180px;height:3px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.loader-bar i{display:block;height:100%;width:0;background:var(--grad);border-radius:99px;transition:width .3s}
+
+/* ============ 頂部進度條 ============ */
+#scrollbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:2000;background:transparent}
+#scrollbar i{
+  display:block;height:100%;width:0;
+  background:var(--grad3);background-size:300% 100%;
+  animation:gradmove 3s linear infinite;
+  box-shadow:0 0 12px rgba(124,58,237,.8);
+}
+@keyframes gradmove{to{background-position:300% 0}}
+
+/* ============ 導航 ============ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1500;
+  padding:14px 18px;padding-top:calc(14px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .45s cubic-bezier(.4,0,.2,1);
+}
+nav.scrolled{
+  background:rgba(10,5,25,.72);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:10px;
+}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:.5px}
+.logo-mark{
+  width:34px;height:34px;border-radius:11px;background:var(--grad);
+  display:grid;place-items:center;font-size:16px;
+  box-shadow:0 4px 18px rgba(124,58,237,.5);
+  animation:logoFloat 3.4s ease-in-out infinite;
+}
+@keyframes logoFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(4deg)}}
+.nav-cta{
+  font-size:13px;font-weight:700;padding:9px 18px;border-radius:99px;
+  background:var(--grad);position:relative;overflow:hidden;
+  box-shadow:0 4px 16px rgba(6,182,212,.35);
+}
+.nav-cta::after{
+  content:"";position:absolute;top:0;left:-80%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);
+  transform:skewX(-20deg);animation:shine 3s ease infinite;
+}
+@keyframes shine{0%{left:-80%}55%,100%{left:130%}}
+
+/* ============ 通用 Section ============ */
+section{position:relative;padding:64px 18px;max-width:680px;margin:0 auto}
+.sec-tag{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--c2);margin-bottom:14px;
+  padding:6px 14px;border-radius:99px;
+  border:1px solid rgba(6,182,212,.3);background:rgba(6,182,212,.07);
+}
+.sec-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c2);animation:blink 1.6s ease infinite}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(6,182,212,.6)}50%{opacity:.5;box-shadow:0 0 0 6px rgba(6,182,212,0)}}
+.sec-title{font-size:clamp(26px,7vw,36px);font-weight:900;line-height:1.25;letter-spacing:-.5px;margin-bottom:12px}
+.sec-desc{color:var(--sub);font-size:15px;margin-bottom:34px}
+.grad-text{
+  background:var(--grad3);background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:gradmove 5s linear infinite;
+}
+
+/* ============ Hero ============ */
+#hero{
+  min-height:100svh;max-width:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding-top:100px;overflow:hidden;
+}
+#particles{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.aurora{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;z-index:0;pointer-events:none;will-change:transform}
+.aurora.a1{width:320px;height:320px;background:#7c3aed;top:6%;left:-25%;animation:drift1 11s ease-in-out infinite}
+.aurora.a2{width:280px;height:280px;background:#06b6d4;top:36%;right:-28%;animation:drift2 13s ease-in-out infinite}
+.aurora.a3{width:240px;height:240px;background:#f472b6;bottom:8%;left:6%;animation:drift3 15s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,50px) scale(1.15)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-55px,-45px) scale(1.2)}}
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(45px,-55px) scale(.9)}}
+.hero-inner{position:relative;z-index:2;max-width:680px;width:100%;padding:0 22px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
+  padding:8px 16px;border-radius:99px;margin-bottom:22px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  animation:fadeUp .9s .1s both;
+}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 10px #34d399;animation:blink 1.6s infinite}
+h1{font-size:clamp(34px,9.5vw,58px);font-weight:900;line-height:1.16;letter-spacing:-1.5px;margin-bottom:18px;animation:fadeUp .9s .25s both}
+.type-wrap{font-size:clamp(15px,4.2vw,20px);color:var(--sub);margin-bottom:34px;min-height:1.8em;animation:fadeUp .9s .4s both}
+#typewriter{color:var(--c2);font-weight:700}
+.cursor-bar{display:inline-block;width:2px;height:1.05em;background:var(--c2);vertical-align:-2px;margin-left:2px;animation:caret .8s step-end infinite}
+@keyframes caret{50%{opacity:0}}
+.hero-btns{display:flex;flex-direction:column;gap:14px;align-items:center;animation:fadeUp .9s .55s both}
+.btn{
+  position:relative;overflow:hidden;border:none;cursor:pointer;
+  font-family:inherit;font-weight:800;font-size:16px;
+  padding:16px 40px;border-radius:99px;width:min(300px,80vw);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+}
+.btn:active{transform:scale(.94)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 10px 34px rgba(124,58,237,.45)}
+.btn-primary::after{
+  content:"";position:absolute;top:0;left:-80%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.45),transparent);
+  transform:skewX(-20deg);animation:shine 2.8s ease infinite;
+}
+.btn-ghost{
+  background:rgba(255,255,255,.05);color:var(--txt);
+  border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.ripple{position:absolute;border-radius:50%;transform:scale(0);background:rgba(255,255,255,.45);animation:ripple .65s ease-out forwards;pointer-events:none}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}
+.scroll-hint{
+  position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  color:var(--sub);font-size:10px;letter-spacing:3px;
+}
+.mouse{width:22px;height:36px;border:2px solid rgba(255,255,255,.3);border-radius:12px;display:flex;justify-content:center;padding-top:6px}
+.mouse i{width:3px;height:7px;border-radius:3px;background:var(--c2);animation:wheel 1.6s ease infinite}
+@keyframes wheel{0%{transform:translateY(0);opacity:1}70%{transform:translateY(12px);opacity:0}100%{opacity:0}}
+
+/* ============ 數據統計 ============ */
+#stats{padding-top:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.stat-card{
+  background:var(--card);border:1px solid var(--card-brd);border-radius:var(--radius);
+  padding:26px 16px;text-align:center;position:relative;overflow:hidden;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),border-color .4s;
+}
+.stat-card:active{transform:scale(.96)}
+.stat-card::before{
+  content:"";position:absolute;inset:-60%;
+  background:conic-gradient(from 0deg,transparent 60%,rgba(124,58,237,.14) 75%,rgba(6,182,212,.14) 85%,transparent 100%);
+  animation:rotateGlow 6s linear infinite;pointer-events:none;
+}
+@keyframes rotateGlow{to{transform:rotate(360deg)}}
+.stat-num{
+  font-size:clamp(30px,8vw,42px);font-weight:900;letter-spacing:-1px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.stat-label{font-size:12px;color:var(--sub);margin-top:5px;letter-spacing:1px}
+
+/* ============ 跑馬燈 ============ */
+.marquee-wrap{
+  overflow:hidden;padding:18px 0;position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);
+}
+.marquee{display:flex;gap:38px;width:max-content;animation:marquee 24s linear infinite}
+.marquee-wrap:hover .marquee{animation-play-state:paused}
+@keyframes marquee{to{transform:translateX(-50%)}}
+.marquee span{font-size:14px;font-weight:700;color:var(--sub);white-space:nowrap;display:flex;align-items:center;gap:38px}
+.marquee span::after{content:"✦";color:var(--c1);font-size:11px}
+
+/* ============ 課程卡片（3D 傾斜） ============ */
+.course-list{display:flex;flex-direction:column;gap:26px}
+.course-card{
+  position:relative;border-radius:26px;overflow:hidden;
+  background:var(--card);border:1px solid var(--card-brd);
+  transform-style:preserve-3d;will-change:transform;
+  transition:border-color .4s;
+  opacity:0;
+}
+.reveal.in-view .course-card{opacity:1}
+.course-card::before{
+  content:"";position:absolute;inset:0;border-radius:26px;padding:1px;
+  background:linear-gradient(135deg,rgba(124,58,237,.55),transparent 40%,transparent 60%,rgba(6,182,212,.55));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .5s;pointer-events:none;z-index:3;
+}
+.course-card.lit::before{opacity:1}
+.course-media{position:relative;overflow:hidden;aspect-ratio:16/9}
+.course-media img{width:100%;height:100%;object-fit:cover;transform:scale(1.08);transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.course-card.lit .course-media img{transform:scale(1.16)}
+.course-media::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 35%,rgba(5,1,15,.92));
+}
+.course-chip{
+  position:absolute;top:14px;left:14px;z-index:2;
+  font-size:11px;font-weight:800;padding:6px 13px;border-radius:99px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.chip-hot{background:rgba(244,63,94,.22);color:#fb7185;border:1px solid rgba(244,63,94,.4)}
+.chip-new{background:rgba(6,182,212,.18);color:#22d3ee;border:1px solid rgba(6,182,212,.4)}
+.chip-pro{background:rgba(251,191,36,.16);color:#fbbf24;border:1px solid rgba(251,191,36,.4)}
+.course-body{padding:20px 20px 24px;position:relative;z-index:2;margin-top:-46px}
+.course-title{font-size:20px;font-weight:800;margin-bottom:9px;letter-spacing:-.3px}
+.course-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.course-meta i{
+  font-style:normal;font-size:11px;color:var(--sub);
+  padding:5px 11px;border-radius:8px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
+}
+.course-foot{display:flex;align-items:center;justify-content:space-between}
+.course-price{font-size:22px;font-weight:900;color:var(--c2)}
+.course-price small{font-size:12px;color:var(--sub);font-weight:500;text-decoration:line-through;margin-left:6px}
+.course-btn{
+  font-size:13px;font-weight:700;padding:11px 22px;border-radius:99px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:var(--txt);
+  transition:all .3s;
+}
+.course-card.lit .course-btn{background:var(--grad);border-color:transparent;box-shadow:0 6px 20px rgba(124,58,237,.4)}
+
+/* ============ 學習路徑（時間線） ============ */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{
+  content:"";position:absolute;left:11px;top:8px;bottom:8px;width:2px;
+  background:linear-gradient(180deg,var(--c1),var(--c2),var(--c3));
+  border-radius:2px;opacity:.6;
+}
+.tl-item{position:relative;margin-bottom:26px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{
+  position:absolute;left:-34px;top:5px;width:24px;height:24px;border-radius:50%;
+  background:var(--bg2);border:2px solid var(--c1);
+  display:grid;place-items:center;font-size:11px;font-weight:900;color:var(--c2);
+  transition:all .4s;
+}
+.tl-item.in-view .tl-dot{
+  background:var(--grad);border-color:transparent;color:#fff;
+  box-shadow:0 0 0 6px rgba(124,58,237,.18),0 0 18px rgba(124,58,237,.6);
+}
+.tl-card{
+  background:var(--card);border:1px solid var(--card-brd);border-radius:18px;
+  padding:18px;transition:transform .4s,border-color .4s;
+}
+.tl-item.in-view .tl-card{border-color:rgba(124,58,237,.35)}
+.tl-card h4{font-size:16px;font-weight:800;margin-bottom:5px}
+.tl-card p{font-size:13px;color:var(--sub)}
+.tl-card .tl-week{font-size:11px;color:var(--c2);font-weight:700;letter-spacing:1px}
+
+/* ============ 導師（玻璃卡） ============ */
+.teachers{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.teacher{
+  text-align:center;padding:24px 12px;border-radius:20px;
+  background:var(--card);border:1px solid var(--card-brd);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .4s;
+}
+.teacher:active{transform:scale(.95)}
+.teacher .avatar{
+  width:64px;height:64px;margin:0 auto 12px;border-radius:50%;
+  display:grid;place-items:center;font-size:26px;
+  background:var(--grad);position:relative;
+  box-shadow:0 6px 22px rgba(124,58,237,.4);
+}
+.teacher .avatar::after{
+  content:"";position:absolute;inset:-5px;border-radius:50%;
+  border:2px solid transparent;
+  border-top-color:var(--c2);border-right-color:var(--c3);
+  animation:spin 3.5s linear infinite;
+}
+.teacher h4{font-size:15px;font-weight:800}
+.teacher p{font-size:11px;color:var(--sub);margin-top:3px}
+
+/* ============ 學員評價（觸控輪播） ============ */
+.swipe-wrap{overflow:hidden;border-radius:24px;position:relative}
+.swipe-track{display:flex;transition:transform .55s cubic-bezier(.3,.9,.3,1);will-change:transform}
+.review{
+  min-width:100%;padding:30px 24px;
+  background:linear-gradient(160deg,rgba(124,58,237,.13),rgba(6,182,212,.08));
+  border:1px solid rgba(255,255,255,.08);border-radius:24px;
+}
+.stars{color:var(--c4);letter-spacing:4px;font-size:15px;margin-bottom:14px}
+.review p{font-size:15px;line-height:1.85;color:#d8d2ef;margin-bottom:18px}
+.reviewer{display:flex;align-items:center;gap:12px}
+.reviewer .r-ava{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+  font-size:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+}
+.reviewer b{font-size:14px;display:block}
+.reviewer span{font-size:11px;color:var(--sub)}
+.swipe-dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.swipe-dots i{
+  width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.18);
+  transition:all .4s;cursor:pointer;
+}
+.swipe-dots i.on{width:24px;background:var(--grad)}
+
+/* ============ 學費（發光邊框） ============ */
+.pricing{display:flex;flex-direction:column;gap:18px}
+.price-card{
+  position:relative;border-radius:24px;padding:28px 22px;
+  background:var(--card);border:1px solid var(--card-brd);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  overflow:hidden;
+}
+.price-card:active{transform:scale(.97)}
+.price-card.hot{
+  border-color:rgba(124,58,237,.5);
+  background:linear-gradient(165deg,rgba(124,58,237,.16),rgba(6,182,212,.06));
+  box-shadow:0 14px 44px rgba(124,58,237,.28);
+}
+.price-card.hot::before{
+  content:"";position:absolute;inset:-140%;
+  background:conic-gradient(from 0deg,transparent 0 78%,rgba(124,58,237,.28) 86%,rgba(6,182,212,.28) 94%,transparent 100%);
+  animation:rotateGlow 5s linear infinite;pointer-events:none;
+}
+.price-card>*{position:relative;z-index:1}
+.hot-flag{
+  position:absolute;top:14px;right:14px;z-index:2;
+  font-size:10px;font-weight:900;letter-spacing:2px;padding:6px 12px;border-radius:99px;
+  background:var(--grad);color:#fff;
+}
+.price-name{font-size:13px;letter-spacing:2px;color:var(--sub);font-weight:700;text-transform:uppercase}
+.price-val{font-size:42px;font-weight:900;margin:10px 0 4px;letter-spacing:-1.5px}
+.price-val small{font-size:14px;color:var(--sub);font-weight:500;letter-spacing:0}
+.price-per{font-size:12px;color:var(--sub);margin-bottom:20px}
+.price-feats{list-style:none;margin-bottom:24px}
+.price-feats li{font-size:13.5px;padding:7px 0;color:#cfc8ea;display:flex;align-items:center;gap:10px}
+.price-feats li::before{
+  content:"✓";width:19px;height:19px;border-radius:50%;flex-shrink:0;
+  display:grid;place-items:center;font-size:10px;font-weight:900;
+  background:rgba(6,182,212,.15);color:var(--c2);
+}
+.price-btn{
+  display:block;width:100%;text-align:center;padding:15px;border-radius:16px;
+  font-weight:800;font-size:15px;transition:all .3s;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+}
+.price-card.hot .price-btn{background:var(--grad);border:none;box-shadow:0 8px 26px rgba(124,58,237,.45)}
+.price-btn:active{transform:scale(.96)}
+
+/* ============ 常見問題 ============ */
+.faq-item{
+  background:var(--card);border:1px solid var(--card-brd);border-radius:18px;
+  margin-bottom:12px;overflow:hidden;transition:border-color .3s;
+}
+.faq-item.open{border-color:rgba(124,58,237,.4)}
+.faq-q{
+  width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:18px 18px;background:none;border:none;color:var(--txt);
+  font-family:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;
+}
+.faq-q .plus{
+  width:26px;height:26px;border-radius:8px;flex-shrink:0;
+  display:grid;place-items:center;font-size:16px;font-weight:400;
+  background:rgba(255,255,255,.07);transition:all .4s;
+}
+.faq-item.open .plus{transform:rotate(45deg);background:var(--grad)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1)}
+.faq-a p{padding:0 18px 18px;font-size:13.5px;color:var(--sub);line-height:1.8}
+
+/* ============ 課程詳情彈窗 ============ */
+#modal{
+  position:fixed;inset:0;z-index:3000;
+  display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(3,0,10,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s;
+}
+#modal.open{opacity:1;visibility:visible}
+.modal-sheet{
+  width:100%;max-width:680px;max-height:88svh;overflow-y:auto;
+  background:linear-gradient(180deg,#150a30 0%,#0b0520 30%);
+  border-radius:28px 28px 0 0;
+  border-top:1px solid rgba(255,255,255,.12);
+  transform:translateY(100%);
+  transition:transform .5s cubic-bezier(.32,.9,.3,1);
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+#modal.open .modal-sheet{transform:translateY(0)}
+.modal-handle{
+  position:sticky;top:0;z-index:5;
+  display:flex;justify-content:center;align-items:center;
+  padding:12px 0 6px;cursor:pointer;
+  background:linear-gradient(180deg,#150a30 80%,transparent);
+}
+.modal-handle i{width:44px;height:5px;border-radius:99px;background:rgba(255,255,255,.22)}
+.modal-close{
+  position:absolute;top:14px;right:16px;z-index:6;
+  width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(0,0,0,.45);color:#fff;font-size:17px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.14);
+}
+.modal-hero{position:relative;aspect-ratio:16/8.5;overflow:hidden}
+.modal-hero img{width:100%;height:100%;object-fit:cover}
+.modal-hero::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 20%,#150a30 96%);
+}
+.modal-body{padding:4px 22px calc(30px + var(--safe-b));margin-top:-52px;position:relative;z-index:2}
+.modal-title{font-size:23px;font-weight:900;letter-spacing:-.4px;margin-bottom:10px}
+.modal-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.modal-meta i{
+  font-style:normal;font-size:11px;color:var(--sub);
+  padding:5px 11px;border-radius:8px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+}
+.modal-price-row{
+  display:flex;align-items:baseline;gap:10px;margin-bottom:22px;
+  padding:16px 18px;border-radius:16px;
+  background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);
+}
+.modal-price-row b{font-size:28px;font-weight:900;color:var(--c2);letter-spacing:-.5px}
+.modal-price-row s{font-size:14px;color:var(--sub)}
+.modal-price-row .off{
+  margin-left:auto;font-size:11px;font-weight:800;color:#fbbf24;
+  padding:5px 10px;border-radius:99px;background:rgba(251,191,36,.12);
+  border:1px solid rgba(251,191,36,.3);
+}
+.modal-sec-t{
+  font-size:13px;font-weight:800;letter-spacing:2px;color:var(--c2);
+  margin:26px 0 14px;display:flex;align-items:center;gap:10px;
+}
+.modal-sec-t::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(6,182,212,.35),transparent)}
+.modal-feats li{
+  list-style:none;font-size:14px;color:#d8d2ef;
+  padding:7px 0 7px 26px;position:relative;
+}
+.modal-feats li::before{
+  content:"✦";position:absolute;left:2px;color:var(--c1);font-size:12px;
+}
+.lesson{
+  display:flex;gap:14px;padding:13px 0;
+  border-bottom:1px dashed rgba(255,255,255,.07);
+  animation:lessonIn .5s ease both;
+}
+.lesson:last-child{border-bottom:none}
+.lesson:nth-child(1){animation-delay:.05s}.lesson:nth-child(2){animation-delay:.1s}
+.lesson:nth-child(3){animation-delay:.15s}.lesson:nth-child(4){animation-delay:.2s}
+.lesson:nth-child(5){animation-delay:.25s}.lesson:nth-child(6){animation-delay:.3s}
+.lesson:nth-child(7){animation-delay:.35s}.lesson:nth-child(8){animation-delay:.4s}
+.lesson:nth-child(9){animation-delay:.45s}.lesson:nth-child(10){animation-delay:.5s}
+@keyframes lessonIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+.lesson .no{
+  width:30px;height:30px;border-radius:10px;flex-shrink:0;
+  display:grid;place-items:center;font-size:12px;font-weight:900;
+  background:var(--grad);color:#fff;
+}
+.lesson b{display:block;font-size:14.5px;font-weight:800}
+.lesson p{font-size:12.5px;color:var(--sub);margin-top:2px}
+.modal-wa{
+  display:block;width:100%;margin-top:28px;padding:17px;border:none;border-radius:18px;
+  font-family:inherit;font-size:16px;font-weight:800;color:#fff;cursor:pointer;
+  background:var(--grad);box-shadow:0 10px 30px rgba(124,58,237,.45);
+  position:relative;overflow:hidden;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-wa:active{transform:scale(.96)}
+.modal-wa::after{
+  content:"";position:absolute;top:0;left:-80%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.45),transparent);
+  transform:skewX(-20deg);animation:shine 2.8s ease infinite;
+}
+
+/* ============ CTA ============ */
+#cta{text-align:center;padding-bottom:110px}
+.cta-box{
+  position:relative;border-radius:28px;padding:46px 22px;overflow:hidden;
+  background:linear-gradient(150deg,rgba(124,58,237,.22),rgba(6,182,212,.14));
+  border:1px solid rgba(255,255,255,.1);
+}
+.cta-box::before{
+  content:"";position:absolute;width:220px;height:220px;border-radius:50%;
+  background:rgba(124,58,237,.3);filter:blur(70px);top:-70px;right:-60px;
+  animation:drift2 9s ease-in-out infinite;
+}
+.cta-box h2{font-size:clamp(24px,6.5vw,32px);font-weight:900;margin-bottom:10px;position:relative;z-index:1}
+.cta-box p{color:var(--sub);font-size:14px;margin-bottom:26px;position:relative;z-index:1}
+.cta-count{
+  display:inline-flex;gap:6px;margin-bottom:24px;position:relative;z-index:1;
+  padding:9px 18px;border-radius:99px;background:rgba(0,0,0,.3);
+  font-size:13px;font-weight:700;border:1px solid rgba(255,255,255,.1);
+}
+.cta-count b{color:#fbbf24;font-size:15px}
+
+/* ============ 頁尾 ============ */
+footer{
+  padding:36px 22px calc(26px + var(--safe-b));text-align:center;
+  border-top:1px solid rgba(255,255,255,.06);color:var(--sub);font-size:12px;
+}
+footer .f-logo{font-weight:900;font-size:16px;color:var(--txt);margin-bottom:8px}
+footer p{margin-top:4px}
+
+/* ============ 底部懸浮欄 ============ */
+#stickybar{
+  position:fixed;left:14px;right:14px;bottom:calc(14px + var(--safe-b));z-index:1400;
+  display:flex;gap:10px;padding:10px;border-radius:20px;
+  background:rgba(12,6,28,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,.1);
+  transform:translateY(140%);transition:transform .55s cubic-bezier(.34,1.3,.5,1);
+  box-shadow:0 14px 40px rgba(0,0,0,.5);
+}
+#stickybar.show{transform:translateY(0)}
+#stickybar .sb-info{flex:1;min-width:0}
+#stickybar .sb-info b{font-size:17px;color:var(--c2)}
+#stickybar .sb-info span{display:block;font-size:10.5px;color:var(--sub)}
+#stickybar .btn{width:auto;padding:13px 24px;font-size:14px}
+
+/* ============ 滾動出現動畫 ============ */
+.reveal{opacity:0;transform:translateY(42px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+.reveal.in-view{opacity:1;transform:translateY(0)}
+.reveal[data-d="1"]{transition-delay:.12s}
+.reveal[data-d="2"]{transition-delay:.24s}
+.reveal[data-d="3"]{transition-delay:.36s}
+
+/* ============ 觸控高亮游標 ============ */
+#glow{
+  position:fixed;width:340px;height:340px;border-radius:50%;z-index:1;
+  background:radial-gradient(circle,rgba(124,58,237,.14),transparent 65%);
+  pointer-events:none;transform:translate(-50%,-50%);
+  transition:left .25s ease-out,top .25s ease-out;
+}
+@media (hover:none){#glow{display:none}}
+</style>
+</head>
+<body>
+
+<!-- 載入畫面 -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-txt">VIBE CODING</div>
+  <div class="loader-bar"><i id="loadbar"></i></div>
+</div>
+
+<!-- 滾動進度 -->
+<div id="scrollbar"><i></i></div>
+
+<!-- 游標輝光 -->
+<div id="glow"></div>
+
+<!-- 導航 -->
+<nav id="nav">
+  <div class="logo"><div class="logo-mark">⚡</div>Vibe Coding 學院</div>
+  <a href="#pricing" class="nav-cta">💬 立即報名</a>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <canvas id="particles"></canvas>
+  <div class="aurora a1"></div><div class="aurora a2"></div><div class="aurora a3"></div>
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span>2026 新學年 · 限額招生中</div>
+    <h1>唔使寫 Code<br>都出到 <span class="grad-text">自家 App</span></h1>
+    <div class="type-wrap">用 Vibe Coding 整 <span id="typewriter"></span><span class="cursor-bar"></span></div>
+    <div class="hero-btns">
+      <button class="btn btn-primary" data-ripple>免費試聽第一堂</button>
+      <a href="#path" class="btn btn-ghost" data-ripple>查看課程大綱</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="mouse"><i></i></div>
+    SCROLL
+  </div>
+</section>
+
+<!-- 數據統計 -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="stat-card reveal"><div class="stat-num"><span class="count" data-to="12000">0</span>+</div><div class="stat-label">在讀學員</div></div>
+    <div class="stat-card reveal" data-d="1"><div class="stat-num"><span class="count" data-to="98">0</span>%</div><div class="stat-label">成功出 App 率</div></div>
+    <div class="stat-card reveal" data-d="2"><div class="stat-num"><span class="count" data-to="60">0</span>+</div><div class="stat-label">上線作品</div></div>
+    <div class="stat-card reveal" data-d="3"><div class="stat-num"><span class="count" data-to="45">0</span>位</div><div class="stat-label">星級導師</div></div>
+  </div>
+</section>
+
+<!-- 跑馬燈 -->
+<div class="marquee-wrap">
+  <div class="marquee" id="marquee">
+    <span>iOS App 開發</span><span>Android App 開發</span><span>網站開發</span><span>微信小程序</span><span>Prompt 工程</span><span>AI 修圖 UI</span><span>產品上架商店</span><span>自動化部署</span>
+  </div>
+</div>
+
+<!-- 課程 -->
+<section id="courses">
+  <div class="reveal">
+    <span class="sec-tag">旗艦課程</span>
+    <h2 class="sec-title">三大王牌 <span class="grad-text">Vibe Coding 課程</span></h2>
+    <p class="sec-desc">由零開始，用 AI 助手寫出 iOS / Android App、網站同微信小程序，項目驅動教學。</p>
+  </div>
+  <div class="course-list">
+    <article class="course-card reveal tilt">
+      <div class="course-media">
+        <img src="assets/course-vibe-app.jpg" alt="iOS / Android App 開發課程" loading="lazy">
+        <span class="course-chip chip-hot">🔥 最熱門</span>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title">iOS / Android App 全棧實戰班</h3>
+        <div class="course-meta"><i>⏱ 10 堂課</i><i>🎥 86 節影片</i><i>📱 6 個上架作品</i></div>
+        <p style="font-size:13.5px;color:var(--sub);margin-bottom:16px">唔使編程底子，用 Vibe Coding 工具（Cursor / Claude / TRAE）由零寫出原生 App，學識提交上架 App Store 同 Google Play。</p>
+        <div class="course-foot">
+          <div class="course-price">HK$4,280<small>HK$6,480</small></div>
+          <button class="course-btn" data-ripple data-course="app">了解詳情</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card reveal tilt" data-d="1">
+      <div class="course-media">
+        <img src="assets/course-vibe-web.jpg" alt="網站開發課程" loading="lazy">
+        <span class="course-chip chip-new">✨ 全新上線</span>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title">AI 網站開發速成營</h3>
+        <div class="course-meta"><i>⏱ 10 堂課</i><i>🎥 54 節影片</i><i>🌐 8 個網站項目</i></div>
+        <p style="font-size:13.5px;color:var(--sub);margin-bottom:16px">一句描述，AI 幫你生成成個網站。學識同 AI 溝通、改 UI、駁後台，仲會教你一鍵部署上線畀全世界睇。</p>
+        <div class="course-foot">
+          <div class="course-price">HK$3,280<small>HK$4,680</small></div>
+          <button class="course-btn" data-ripple data-course="web">了解詳情</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card reveal tilt" data-d="2">
+      <div class="course-media">
+        <img src="assets/course-vibe-miniapp.jpg" alt="微信小程序開發課程" loading="lazy">
+        <span class="course-chip chip-pro">👑 進階首選</span>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title">微信小程序商業實戰大師班</h3>
+        <div class="course-meta"><i>⏱ 10 堂課</i><i>🎥 72 節影片</i><i>💬 5 個小程序項目</i></div>
+        <p style="font-size:13.5px;color:var(--sub);margin-bottom:16px">用 Vibe Coding 快速起小程序：電商、預約、會員卡一應俱全，學識接入微信支付、公眾號引流，直接商業變現。</p>
+        <div class="course-foot">
+          <div class="course-price">HK$3,580<small>HK$5,080</small></div>
+          <button class="course-btn" data-ripple data-course="miniapp">了解詳情</button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- 學習路徑 -->
+<section id="path">
+  <div class="reveal">
+    <span class="sec-tag">學習路徑</span>
+    <h2 class="sec-title">10 堂課 <span class="grad-text">出 App 路線</span></h2>
+    <p class="sec-desc">科學分階段培訓，每堂有功課、有項目實作，助教全程跟進。</p>
+  </div>
+  <div class="timeline">
+    <div class="tl-item reveal"><div class="tl-dot">1</div><div class="tl-card"><div class="tl-week">PHASE 01 · 第 1-2 堂</div><h4>Vibe Coding 入門與 Prompt 心法</h4><p>掌握 Cursor / Claude / TRAE 等工具，學識點樣同 AI 溝通先至出到位嘅代碼。</p></div></div>
+    <div class="tl-item reveal" data-d="1"><div class="tl-dot">2</div><div class="tl-card"><div class="tl-week">PHASE 02 · 第 3-5 堂</div><h4>網站與小程序開發</h4><p>由 AI 生成靚 UI 開始，學識改版面、駁後台，完成可上線嘅網站同微信小程序。</p></div></div>
+    <div class="tl-item reveal" data-d="2"><div class="tl-dot">3</div><div class="tl-card"><div class="tl-week">PHASE 03 · 第 6-8 堂</div><h4>iOS / Android App 開發</h4><p>用 Vibe Coding 整原生 App，處理 UI、數據、推送通知，一路整一路上架。</p></div></div>
+    <div class="tl-item reveal" data-d="3"><div class="tl-dot">4</div><div class="tl-card"><div class="tl-week">PHASE 04 · 第 9-10 堂</div><h4>畢業項目與商業變現</h4><p>完成自己嘅產品並正式上架 App Store / Google Play，學識推廣、訂閱收費模式。</p></div></div>
+  </div>
+</section>
+
+<!-- 導師 -->
+<section id="teachers">
+  <div class="reveal">
+    <span class="sec-tag">星級導師</span>
+    <h2 class="sec-title">業界精英 <span class="grad-text">實戰派導師</span></h2>
+    <p class="sec-desc">每位導師都有親手上架產品嘅實戰經驗，拒絕紙上談兵。</p>
+  </div>
+  <div class="teachers">
+    <div class="teacher reveal"><div class="avatar">👨‍💻</div><h4>陳博士</h4><p>獨立開發者 · 10+ App 上架</p></div>
+    <div class="teacher reveal" data-d="1"><div class="avatar">👩‍🔬</div><h4>林老師</h4><p>前科企移動端技術負責人</p></div>
+    <div class="teacher reveal" data-d="2"><div class="avatar">🧑‍🎨</div><h4>Kevin</h4><p>Vibe Coding 內容創作者 / 30 萬粉絲</p></div>
+    <div class="teacher reveal" data-d="3"><div class="avatar">👩‍🏫</div><h4>Susan</h4><p>小程序創業者 · 年營收 7 位數</p></div>
+  </div>
+</section>
+
+<!-- 評價輪播 -->
+<section id="reviews">
+  <div class="reveal">
+    <span class="sec-tag">學員口碑</span>
+    <h2 class="sec-title">佢哋嘅 <span class="grad-text">真實改變</span></h2>
+    <p class="sec-desc">左右滑動查看學員評價。</p>
+  </div>
+  <div class="swipe-wrap reveal" id="swipe">
+    <div class="swipe-track" id="swipeTrack">
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>"完全唔識寫 code，跟住路線上晒 10 堂課，我第一個 App 真係上咗 App Store！而家仲有穩定下載量，呢樣嘢以前真係諗都唔敢諗。"</p>
+        <div class="reviewer"><div class="r-ava">🧑</div><div><b>張同學</b><span>App 全棧班 · 第 3 期</span></div></div>
+      </div>
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>"我係設計師，用 Vibe Coding 兩個星期就整咗個作品集網站，仲自動幫我接到兩個客。同 AI 溝通嘅技巧真係好重要。"</p>
+        <div class="reviewer"><div class="r-ava">👩</div><div><b>李同學</b><span>網站速成營 · 第 2 期</span></div></div>
+      </div>
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>"幫屋企間小店整咗個微信小程序做網上訂單，唔使再請人寫 code，慳咗成十萬開發費。Susan 老師教嘅變現思路好實用。"</p>
+        <div class="reviewer"><div class="r-ava">🧑‍🎨</div><div><b>王同學</b><span>小程序大師班 · 第 5 期</span></div></div>
+      </div>
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>"最驚喜係助教全程跟進，有次半夜卡咗個 bug，朝早九點已經有回覆。每星期嘅項目答辯令進度好紮實，完全唔係睇完即忘嗰種網上課程。"</p>
+        <div class="reviewer"><div class="r-ava">👨</div><div><b>劉同學</b><span>App 全棧班 · 第 4 期</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="swipe-dots" id="swipeDots"></div>
+</section>
+
+<!-- 學費 -->
+<section id="pricing">
+  <div class="reveal">
+    <span class="sec-tag">限時優惠</span>
+    <h2 class="sec-title">揀選你嘅 <span class="grad-text">學習計劃</span></h2>
+    <p class="sec-desc">開學季限時減免，9 月 15 日 24:00 恢復原價。</p>
+  </div>
+  <div class="pricing">
+    <div class="price-card reveal">
+      <div class="price-name">單科速成</div>
+      <div class="price-val">HK$2,180<small>/門</small></div>
+      <div class="price-per">適合想專攻單一平台嘅同學</div>
+      <ul class="price-feats">
+        <li>任選 1 門旗艦課程（App / 網站 / 小程序）</li>
+        <li>全部影片 + 完整項目原始碼</li>
+        <li>社群答疑（48 小時回覆）</li>
+        <li>結業證書</li>
+      </ul>
+      <a href="#cta" class="price-btn" data-ripple>選擇此計劃</a>
+    </div>
+    <div class="price-card hot reveal" data-d="1">
+      <span class="hot-flag">MOST POPULAR</span>
+      <div class="price-name">全棧通年卡</div>
+      <div class="price-val">HK$5,480<small>/年</small></div>
+      <div class="price-per">App + 網站 + 小程序三大課程全部解鎖 · 好評率 98%</div>
+      <ul class="price-feats">
+        <li>全部 3 門旗艦課程無限學</li>
+        <li>1 對 1 助教全程跟進輔導</li>
+        <li>每月項目答辯 + 上架指導</li>
+        <li>專屬學員群 & 客戶轉介機會</li>
+        <li>新課程上線免費擴容</li>
+      </ul>
+      <a href="#cta" class="price-btn" data-ripple>立即霸定名額</a>
+    </div>
+  </div>
+</section>
+
+<!-- 常見問題 -->
+<section id="faq">
+  <div class="reveal">
+    <span class="sec-tag">常見問題</span>
+    <h2 class="sec-title">你想知嘅 <span class="grad-text">都喺度</span></h2>
+  </div>
+  <div class="reveal" data-d="1">
+    <div class="faq-item">
+      <button class="faq-q">完全唔識寫 Code 都學得識？<span class="plus">+</span></button>
+      <div class="faq-a"><p>得！Vibe Coding 嘅精髓就係「識講嘢就識寫 App」。課程第一堂由零教起，教你點樣用自然語言指揮 AI 寫代碼，過往 70% 學員都係零編程基礎。</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">需要咩設備？要唔要買 Mac？<span class="plus">+</span></button>
+      <div class="faq-a"><p>整網站同微信小程序，任何電腦都得（Windows 都可以）。想出 iOS App 就需要一部 Mac（M1 或之後嘅型號最穩陣）。課程會教你哋用雲端開發環境做後備方案。</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">學完真係出到 App 上架？<span class="plus">+</span></button>
+      <div class="faq-a"><p>一定得！畢業項目就係你自己嘅產品，我哋會陪你行完整個上架流程：申請開發者帳號、過審技巧、定價策略、訂閱收費設定，一路跟到你上架為止。</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">唔滿意可以退款嗎？<span class="plus">+</span></button>
+      <div class="faq-a"><p>支援 7 日無理由退款，開課後 7 日內對課程不滿意，全數退還，無任何附加條款。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-box reveal">
+    <h2>你嘅第一個 App<br>就由 <span class="grad-text">呢句 Prompt</span> 開始</h2>
+    <p>寫 App 唔再係程序員專利，識講嘢就識出 App。</p>
+    <div class="cta-count">今期剩餘名額 <b id="seats">37</b> 個</div>
+    <div class="hero-btns" style="margin:0">
+      <button class="btn btn-primary" data-ripple>🚀 免費領取試聽課</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-logo">⚡ Vibe Coding 學院</div>
+  <p>識講嘢，就識出 App</p>
+  <p style="margin-top:10px;opacity:.5">© 2026 Vibe Coding Academy · Hong Kong</p>
+</footer>
+
+<!-- 懸浮報名欄 -->
+<div id="stickybar">
+  <div class="sb-info"><b>HK$5,480</b><span>App + 網站 + 小程序全棧年卡</span></div>
+  <button class="btn btn-primary" data-ripple>💬 WhatsApp 報名</button>
+</div>
+
+<!-- 課程詳情彈窗 -->
+<div id="modal" aria-hidden="true">
+  <div class="modal-sheet">
+    <button class="modal-close" id="modalClose" aria-label="關閉">✕</button>
+    <div class="modal-hero"><img id="mImg" src="" alt=""></div>
+    <div class="modal-handle" id="modalHandle"><i></i></div>
+    <div class="modal-body">
+      <h3 class="modal-title" id="mTitle"></h3>
+      <div class="modal-meta" id="mMeta"></div>
+      <div class="modal-price-row">
+        <b id="mPrice"></b><s id="mOrigin"></s><span class="off" id="mOff"></span>
+      </div>
+      <div class="modal-sec-t">課程亮點</div>
+      <ul class="modal-feats" id="mFeats"></ul>
+      <div class="modal-sec-t">10 堂課大綱</div>
+      <div id="mLessons"></div>
+      <button class="modal-wa" id="mWa" data-ripple>💬 WhatsApp 查詢 / 報名</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 載入畫面 ================= */
+(function(){
+  const bar = document.getElementById('loadbar');
+  let p = 0;
+  const t = setInterval(()=>{
+    p += Math.random() * 22;
+    if(p >= 100){ p = 100; clearInterval(t);
+      setTimeout(()=>document.getElementById('loader').classList.add('done'), 350);
+    }
+    bar.style.width = p + '%';
+  }, 130);
+})();
+
+/* ================= 粒子網絡背景 ================= */
+(function(){
+  const cv = document.getElementById('particles'), ctx = cv.getContext('2d');
+  let W, H, pts = [], mouse = {x:-999, y:-999};
+  const N = window.innerWidth < 500 ? 42 : 70;
+  function resize(){
+    W = cv.width = cv.offsetWidth * devicePixelRatio;
+    H = cv.height = cv.offsetHeight * devicePixelRatio;
+  }
+  resize(); addEventListener('resize', resize);
+  for(let i=0;i<N;i++){
+    pts.push({
+      x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+      vx:(Math.random()-.5)*.45, vy:(Math.random()-.5)*.45,
+      r:Math.random()*1.8+.6,
+      c:['rgba(124,58,237,','rgba(6,182,212,','rgba(244,114,182,'][i%3]
+    });
+  }
+  cv.addEventListener('pointermove', e=>{ const r=cv.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; });
+  cv.addEventListener('pointerleave', ()=>{ mouse.x=-999; mouse.y=-999; });
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    const dp = devicePixelRatio;
+    for(const p of pts){
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>innerWidth) p.vx*=-1;
+      if(p.y<0||p.y>innerHeight) p.vy*=-1;
+      const dx=mouse.x-p.x, dy=mouse.y-p.y, d=Math.hypot(dx,dy);
+      if(d<130){ p.x+=dx*.012; p.y+=dy*.012; }
+      ctx.beginPath();
+      ctx.arc(p.x*dp, p.y*dp, p.r*dp, 0, 7);
+      ctx.fillStyle = p.c + '.85)';
+      ctx.fill();
+    }
+    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+      const a=pts[i], b=pts[j], d=Math.hypot(a.x-b.x, a.y-b.y);
+      if(d<115){
+        ctx.beginPath();
+        ctx.moveTo(a.x*dp,a.y*dp); ctx.lineTo(b.x*dp,b.y*dp);
+        ctx.strokeStyle = 'rgba(140,120,255,' + (1-d/115)*.35 + ')';
+        ctx.lineWidth = dp*.6;
+        ctx.stroke();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ================= 打字機 ================= */
+(function(){
+  const words = ['iOS App','Android App','靚網站','微信小程序'];
+  const el = document.getElementById('typewriter');
+  let wi=0, ci=0, del=false;
+  function type(){
+    const w = words[wi];
+    el.textContent = del ? w.slice(0,--ci) : w.slice(0,++ci);
+    let delay = del ? 55 : 110;
+    if(!del && ci===w.length){ del=true; delay=1600; }
+    else if(del && ci===0){ del=false; wi=(wi+1)%words.length; delay=350; }
+    setTimeout(type, delay);
+  }
+  type();
+})();
+
+/* ================= 漣漪按鈕 ================= */
+document.querySelectorAll('[data-ripple]').forEach(btn=>{
+  btn.addEventListener('pointerdown', e=>{
+    const r = document.createElement('span');
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.className = 'ripple';
+    r.style.width = r.style.height = size+'px';
+    r.style.left = (e.clientX-rect.left-size/2)+'px';
+    r.style.top = (e.clientY-rect.top-size/2)+'px';
+    btn.appendChild(r);
+    setTimeout(()=>r.remove(), 700);
+  });
+});
+
+/* ================= 導航 & 進度條 & 懸浮欄 ================= */
+(function(){
+  const nav=document.getElementById('nav'),
+        bar=document.querySelector('#scrollbar i'),
+        sticky=document.getElementById('stickybar');
+  function onScroll(){
+    const st=scrollY, h=document.documentElement.scrollHeight-innerHeight;
+    bar.style.width=(st/h*100)+'%';
+    nav.classList.toggle('scrolled', st>40);
+    sticky.classList.toggle('show', st>600 && h-st>500);
+  }
+  addEventListener('scroll', onScroll, {passive:true}); onScroll();
+})();
+
+/* ================= 滾動出現 & 數字滾動 ================= */
+(function(){
+  const io = new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(!e.isIntersecting) return;
+      e.target.classList.add('in-view');
+      e.target.querySelectorAll('.count').forEach(runCount);
+      io.unobserve(e.target);
+    });
+  }, {threshold:.18});
+  document.querySelectorAll('.reveal, .tl-item').forEach(el=>io.observe(el));
+  function runCount(el){
+    const to=+el.dataset.to, dur=1800, t0=performance.now();
+    function step(t){
+      const k=Math.min((t-t0)/dur,1), ease=1-Math.pow(1-k,3);
+      el.textContent = Math.round(to*ease).toLocaleString();
+      if(k<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+})();
+
+/* ================= 3D 傾斜卡片 ================= */
+document.querySelectorAll('.tilt').forEach(card=>{
+  let raf=null;
+  function move(rx, ry){
+    card.style.transition='transform .12s ease-out';
+    card.style.transform=`perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    card.classList.add('lit');
+  }
+  function reset(){
+    card.style.transition='transform .6s cubic-bezier(.2,.8,.2,1)';
+    card.style.transform='perspective(900px) rotateX(0) rotateY(0)';
+    card.classList.remove('lit');
+  }
+  card.addEventListener('pointermove', e=>{
+    if(e.pointerType!=='mouse') return;
+    const r=card.getBoundingClientRect();
+    const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+    if(raf) cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>move(-py*9, px*9));
+  });
+  card.addEventListener('pointerleave', reset);
+  card.addEventListener('touchstart', ()=>card.classList.add('lit'), {passive:true});
+  card.addEventListener('touchend', reset);
+});
+
+/* ================= 觸控輪播 ================= */
+(function(){
+  const track=document.getElementById('swipeTrack'),
+        dotsBox=document.getElementById('swipeDots'),
+        slides=track.children, n=slides.length;
+  let idx=0, startX=0, dx=0, dragging=false;
+  for(let i=0;i<n;i++){
+    const d=document.createElement('i');
+    if(i===0) d.classList.add('on');
+    d.addEventListener('click',()=>go(i));
+    dotsBox.appendChild(d);
+  }
+  function go(i){
+    idx=(i+n)%n;
+    track.style.transform=`translateX(-${idx*100}%)`;
+    dotsBox.querySelectorAll('i').forEach((d,j)=>d.classList.toggle('on',j===idx));
+  }
+  track.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;dx=0;dragging=true;track.style.transition='none';},{passive:true});
+  track.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    dx=e.touches[0].clientX-startX;
+    track.style.transform=`translateX(calc(-${idx*100}% + ${dx}px))`;
+  },{passive:true});
+  track.addEventListener('touchend',()=>{
+    dragging=false;track.style.transition='';
+    if(Math.abs(dx)>50) go(dx<0?idx+1:idx-1); else go(idx);
+  });
+  let timer=setInterval(()=>go(idx+1),4500);
+  track.addEventListener('touchstart',()=>clearInterval(timer),{passive:true});
+})();
+
+/* ================= FAQ 手風琴 ================= */
+document.querySelectorAll('.faq-item').forEach(item=>{
+  const q=item.querySelector('.faq-q'), a=item.querySelector('.faq-a');
+  q.addEventListener('click',()=>{
+    const open=item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(o=>{
+      o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight=0;
+    });
+    if(!open){ item.classList.add('open'); a.style.maxHeight=a.scrollHeight+'px'; }
+  });
+});
+
+/* ================= 游標輝光 ================= */
+(function(){
+  const g=document.getElementById('glow');
+  addEventListener('pointermove', e=>{
+    if(e.pointerType!=='mouse') return;
+    g.style.left=e.clientX+'px'; g.style.top=e.clientY+'px';
+  });
+})();
+
+/* ================= 課程詳情彈窗 ================= */
+(function(){
+  const WA = '8618038002452';
+  const COURSES = {
+    app: {
+      title:'iOS / Android App 全棧實戰班',
+      img:'assets/course-vibe-app.jpg',
+      meta:['⏱ 10 堂課','🎥 86 節影片','📱 6 個上架作品','🎓 零基礎適合'],
+      price:'HK$4,280', origin:'HK$6,480',
+      feats:[
+        '唔使編程底子，用自然語言指揮 AI 寫出原生 App',
+        '掌握 Cursor / Claude / TRAE 三大主流 Vibe Coding 工具',
+        '每堂一個實作項目，學完即刻累積 6 個可上架作品',
+        '導師一對一陪你行 App Store / Google Play 上架流程',
+        '附送完整項目原始碼 + Prompt 模板庫，隨時翻睇'
+      ],
+      lessons:[
+        ['Vibe Coding 心法入門','安裝工具、理解 AI 協作開發流程，寫出你第一行由 AI 生成嘅代碼'],
+        ['Prompt 工程實戰','學識點樣描述需求先至令 AI 一次到位，減少來回修改'],
+        ['App UI 生成與打磨','用 AI 生成靚介面，學識微調版面、配色同動效'],
+        ['數據與雲端後台','駁 Firebase / Supabase，處理登入、數據儲存同步'],
+        ['API 串接實戰','接入天氣、支付、AI 模型等第三方 API'],
+        ['iOS 原生開發','Xcode + SwiftUI，處理推送通知、相機、權限'],
+        ['Android 原生開發','Android Studio + Compose，雙平台一次過搞掂'],
+        ['App 優化與測試','效能調校、崩潰處理、AI 幫你自動寫測試'],
+        ['上架 App Store 實戰','開發者帳號申請、審核技巧、截圖同描述優化'],
+        ['上架 Google Play + 變現','訂閱收費設定、廣告接入、推廣策略']
+      ]
+    },
+    web: {
+      title:'AI 網站開發速成營',
+      img:'assets/course-vibe-web.jpg',
+      meta:['⏱ 10 堂課','🎥 54 節影片','🌐 8 個網站項目','⚡ Windows / Mac 都得'],
+      price:'HK$3,280', origin:'HK$4,680',
+      feats:[
+        '一句描述，AI 幫你生成成個網站，再逐步教你駁後台、上線部署',
+        '作品集 / 電商 / 落地頁 8 個實戰項目，學完直接接 job',
+        '唔使買 Mac，任何電腦都學得，雲端環境全程支援',
+        '教你一鍵部署上線，畀全世界睇到你嘅作品',
+        '附送響應式模板庫 + 客戶需求溝通話術'
+      ],
+      lessons:[
+        ['AI 建站初體驗','一行 Prompt 生成網站，理解 AI 生成代碼嘅結構'],
+        ['同 AI 溝通嘅藝術','學識分步驟描述需求，令 AI 改得又快又準'],
+        ['版面與視覺打磨','字體、配色、間距，改造成專業級視覺'],
+        ['響應式設計','手機、平板、電腦完美自適應，重點照顧手機體驗'],
+        ['互動效果加持','動畫、輪播、表單驗證等常用互動組件'],
+        ['後台與數據庫','駁 Supabase，處理表單提交、會員系統'],
+        ['AI 功能整合','加入 AI 聊天機械人、智能搜尋等功能'],
+        ['一鍵部署上線','Domain 設定、SSL、部署到 Vercel / Netlify'],
+        ['SEO 與速度優化','令 Google 搵到你，載入速度快人一步'],
+        ['畢業項目：接單實戰','由需求分析到交付，完成一個可以收錢嘅商業網站']
+      ]
+    },
+    miniapp: {
+      title:'微信小程序商業實戰大師班',
+      img:'assets/course-vibe-miniapp.jpg',
+      meta:['⏱ 10 堂課','🎥 72 節影片','💬 5 個小程序項目','💰 商業變現導向'],
+      price:'HK$3,580', origin:'HK$5,080',
+      feats:[
+        '用 Vibe Coding 快速起小程序，電商、預約、會員卡一應俱全',
+        '重點教商業變現：微信支付、訂閱會員、廣告位設定',
+        '教你用公眾號 + 小程序聯動引流，低成本搵客',
+        '5 個可複用嘅商業模板，改一改就可以幫客戶度身訂造',
+        '導師親身分享年營收 7 位數嘅小程序創業經驗']
+      ,
+      lessons:[
+        ['小程序生態入門','理解小程序運作邏輯，註冊開發者帳號，跑起第一個小程序'],
+        ['Vibe Coding 起小程序','用 AI 生成小程序代碼，掌握同 AI 協作嘅節奏'],
+        ['UI 組件與導航','首頁、分類、詳情頁結構，做出專業級流暢體驗'],
+        ['電商功能實戰','商品展示、購物車、訂單系統完整實現'],
+        ['微信支付接入','支付流程、退款處理、對帳，商業閉環必備'],
+        ['會員與優惠系統','會員卡、儲值、優惠券，提升回頭客'],
+        ['預約系統實戰','餐廳 / 診所 / 服務業預約場景，即學即用'],
+        ['公眾號聯動引流','內容 + 小程序無縫銜接，低成本獲客'],
+        ['數據分析與優化','用數據看穿用戶行為，持續提升轉化率'],
+        ['畢業項目：商業上線','完成一個可收錢嘅小程序，導師陪你過審上線']
+      ]
+    }
+  };
+
+  const modal = document.getElementById('modal');
+  let lastFocus = null;
+
+  function fill(key){
+    const c = COURSES[key];
+    document.getElementById('mImg').src = c.img;
+    document.getElementById('mImg').alt = c.title;
+    document.getElementById('mTitle').textContent = c.title;
+    document.getElementById('mMeta').innerHTML = c.meta.map(m=>'<i>'+m+'</i>').join('');
+    document.getElementById('mPrice').textContent = c.price;
+    document.getElementById('mOrigin').textContent = c.origin;
+    const p = +c.price.replace(/[^\d]/g,''), o = +c.origin.replace(/[^\d]/g,'');
+    document.getElementById('mOff').textContent = '限時 ' + Math.round((1-p/o)*100) + '% OFF';
+    document.getElementById('mFeats').innerHTML = c.feats.map(f=>'<li>'+f+'</li>').join('');
+    document.getElementById('mLessons').innerHTML = c.lessons.map((l,i)=>
+      '<div class="lesson"><div class="no">'+(i+1)+'</div><div><b>'+l[0]+'</b><p>'+l[1]+'</p></div></div>'
+    ).join('');
+    const msg = '你好！我想查詢課程《' + c.title + '》嘅詳情同報名優惠 🙋';
+    document.getElementById('mWa').onclick = ()=>{
+      window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+    };
+  }
+
+  function open(key){
+    fill(key);
+    lastFocus = document.activeElement;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function close(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+    if(lastFocus) lastFocus.focus();
+  }
+
+  document.querySelectorAll('[data-course]').forEach(btn=>{
+    btn.addEventListener('click', ()=>open(btn.dataset.course));
+  });
+  document.getElementById('modalClose').addEventListener('click', close);
+  document.getElementById('modalHandle').addEventListener('click', close);
+  modal.addEventListener('click', e=>{ if(e.target === modal) close(); });
+  addEventListener('keydown', e=>{ if(e.key === 'Escape' && modal.classList.contains('open')) close(); });
+})();
+
+/* ================= WhatsApp 報名跳轉 ================= */
+(function(){
+  const WA = '8618038002452';
+  const targets = [
+    { sel:'#nav .nav-cta',                     msg:'你好！我想報名 Vibe Coding 課程，請同我講多啲詳情 🙋' },
+    { sel:'#hero .btn-primary',                msg:'你好！我想免費試聽 Vibe Coding 第一堂 🎧' },
+    { sel:'#pricing .price-card:not(.hot) .price-btn', msg:'你好！我想報名「單科速成」計劃（HK$2,180/門）' },
+    { sel:'#pricing .price-card.hot .price-btn',       msg:'你好！我想報名「全棧通年卡」（HK$5,480/年），想霸定名額 🚀' },
+    { sel:'#cta .btn-primary',                 msg:'你好！我想免費領取 Vibe Coding 試聽課 🎧' },
+    { sel:'#stickybar .btn',                   msg:'你好！我想報名 Vibe Coding 課程 🙋' }
+  ];
+  targets.forEach(({sel,msg})=>{
+    const el = document.querySelector(sel);
+    if(!el) return;
+    const url = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(msg);
+    if(el.tagName === 'A') el.href = url;
+    el.addEventListener('click', e=>{
+      e.preventDefault();
+      window.open(url, '_blank');
+    });
+  });
+})();
+
+/* ================= 名額遞減 ================= */
+(function(){
+  const seats=document.getElementById('seats');
+  setInterval(()=>{
+    if(+seats.textContent>12 && Math.random()>.6)
+      seats.textContent=+seats.textContent-1;
+  }, 9000);
+})();
+</script>
+</body>
+</html>
